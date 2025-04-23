@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% block title %}Escanear Pedido{% endblock %}
+
+{% block content %}
+<div class="card">
+  <h2>🔍 Escanear Pedido</h2>
+
+  <!-- Contenedor centrado para el lector QR -->
+  <div id="reader-container" style="display:flex; justify-content:center; margin-top:1rem;">
+    <div id="reader" style="width:400px; height:300px;"></div>
+  </div>
+  <div style="text-align:center; margin-top:0.5rem;">
+    <button id="stop-btn" class="btn">Detener escaneo</button>
+  </div>
+
+  <hr style="margin: 2rem 0;">
+
+  <p><strong>O subí una imagen de QR:</strong></p>
+  <input type="file" id="input-escanear" accept="image/*" class="mt-1"><br><br>
+
+  <p><strong>O ingresá el ID manualmente:</strong></p>
+  <div style="display:flex; align-items:center;">
+    <input type="text" id="manual-id" placeholder="Ingresar ID de pedido" style="flex:1; padding:0.5rem; border:1px solid #ccc; border-radius:4px;">
+    <button class="btn" onclick="buscarManual()" style="margin-left:1rem;">Buscar</button>
+  </div>
+</div>
+
+<!-- Detalle del pedido -->
+<div id="detalle-pedido" class="card" style="display:none; margin-top:2rem;">
+  <h3>📦 Detalle del Pedido</h3>
+  <p><strong>Cliente:</strong> <span id="cliente"></span></p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Imagen</th>
+        <th>Título</th>
+        <th>SKU</th>
+        <th>Variante</th>
+        <th>Cantidad</th>
+      </tr>
+    </thead>
+    <tbody id="tabla-items"></tbody>
+  </table>
+
+  <div class="text-center mt-2">
+    <button id="boton-armar" class="btn">✅ Marcar como armado</button>
+  </div>
+</div>
+
+<script src="/static/html5-qrcode.min.js"></script>
+<script>
+  let scanner;
+  let ultimoID = "";
+
+  function iniciarEscaneo() {
+    scanner = new Html5Qrcode("reader");
+    scanner.start(
+      { facingMode: "environment" },
+      { fps: 10, qrbox: 250 },
+      decoded => {
+        scanner.stop()
+          .then(() => document.getElementById("stop-btn").innerText = "Reanudar escaneo")
+          .catch(console.error);
+        escanear(decoded);
+      },
+      err => {
+        // console.warn(err);
+      }
+    );
+  }
+
+  document.getElementById("stop-btn").addEventListener("click", () => {
+    if (scanner._isScanning) {
+      scanner.stop().then(() => {
+        document.getElementById("stop-btn").innerText = "Reanudar escaneo";
+      });
+    } else {
+      iniciarEscaneo();
+      document.getElementById("stop-btn").innerText = "Detener escaneo";
+    }
+  });
+
+  function escanear(orderID) {
+    ultimoID = orderID;
+    fetch("/escanear", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ order_id: orderID })
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (!data.success) return alert("❌ Pedido no encontrado.");
+      const detalle = data.detalle;
+      document.getElementById("cliente").innerText = detalle.cliente;
+
+      const tabla = document.getElementById("tabla-items");
+      tabla.innerHTML = "";  // limpiamos
+
+      detalle.items.forEach(item => {
+        const variante = item.variante || "—";
+        const imagenUrl = Array.isArray(item.imagenes) && item.imagenes.length
+          ? item.imagenes[0].thumbnail
+          : "https://via.placeholder.com/150";
+
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td style="text-align:center;">
+            <img src="${imagenUrl}" width="80" style="border-radius:4px;">
+          </td>
+          <td>${item.titulo}</td>
+          <td>${item.sku}</td>
+          <td>${variante}</td>
+          <td>${item.cantidad}</td>
+        `;
+        tabla.appendChild(row);
+      });
+
+      // Mostrar sección de detalle y botón de armado
+      document.getElementById("detalle-pedido").style.display = "block";
+      document.getElementById("boton-armar").style.display = "inline-block";
+    })
+    .catch(err => {
+      console.error(err);
+      alert("❌ Error al obtener los detalles");
+    });
+  }
+
+  function buscarManual() {
+    const id = document.getElementById("manual-id").value.trim();
+    if (id) escanear(id);
+  }
+
+  document.getElementById("input-escanear").addEventListener("change", e => {
+    if (!e.target.files.length) return;
+    const qr = new Html5Qrcode("reader");
+    qr.scanFile(e.target.files[0], true)
+      .then(decoded => {
+        qr.clear();
+        escanear(decoded);
+      })
+      .catch(() => alert("❌ No se pudo leer el QR."));
+  });
+
+  // Marcar armado y recargar
+  document.getElementById("boton-armar").addEventListener("click", () => {
+    fetch("/armar", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ order_id: ultimoID })
+    })
+    .then(r => r.json())
+    .then(resp => {
+      if (resp.success) {
+        alert("✅ Pedido marcado como armado");
+        window.location.reload();
+      } else {
+        alert("❌ No se pudo marcar como armado");
+      }
+    })
+    .catch(() => alert("❌ Error al marcar armado"));
+  });
+
+  // Arrancamos al cargar
+  window.addEventListener("DOMContentLoaded", iniciarEscaneo);
+</script>
+{% endblock %}

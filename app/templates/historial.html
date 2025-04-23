@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Historial de Pedidos{% endblock %}
+
+{% block content %}
+<div class="card">
+
+  <!-- HEADER: título + filtros en línea -->
+  <div class="card-header-filters">
+    <h2>📜 Historial de Pedidos</h2>
+
+    <form method="get" action="/historial" class="form-filters-inline">
+      <input type="text"   name="order_id"   value="{{ order_id }}"   placeholder="ID pedido" class="text-input small">
+      <input type="date"   name="date_from"  value="{{ date_from }}"  class="text-input small">
+      <input type="date"   name="date_to"    value="{{ date_to }}"    class="text-input small">
+      <select name="logistica" class="select-input small">
+        <option value="">Todas</option>
+        {% for log in logisticas %}
+          <option value="{{ log }}" {% if log==logistica %}selected{% endif %}>{{ log }}</option>
+        {% endfor %}
+      </select>
+      <select name="estado" class="select-input small">
+        <option value="">Todas</option>
+        <option value="pendiente"  {% if estado=='pendiente'  %}selected{% endif %}>Pendiente</option>
+        <option value="armado"     {% if estado=='armado'     %}selected{% endif %}>Armado</option>
+        <option value="despachado" {% if estado=='despachado' %}selected{% endif %}>Despachado</option>
+      </select>
+      <button type="submit" class="btn btn-primary small">Filtrar</button>
+    </form>
+  </div>
+
+  <!-- TABLA -->
+  <div class="table-responsive">
+    <table class="history-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Cliente</th>
+          <th>Título</th>
+          <th>Cantidad</th>
+          <th>Estado</th>
+          <th>Fecha armado</th>
+          <th>Fecha despacho</th>
+          <th>Logística</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in pedidos %}
+        <tr>
+          <td>{{ p.order_id }}</td>
+          <td>{{ p.cliente }}</td>
+          <td>{{ p.titulo }}</td>
+          <td>{{ p.cantidad }}</td>
+          <td>{{ p.estado }}</td>
+          <td>{{ p.fecha_armado or '—' }}</td>
+          <td>{{ p.fecha_despacho or '—' }}</td>
+          <td>{{ p.logistica or '—' }}</td>
+        </tr>
+        {% endfor %}
+        {% if pedidos|length == 0 %}
+        <tr><td colspan="8" class="no-results">No hay pedidos que coincidan.</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

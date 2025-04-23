@@ -1,0 +1,474 @@
+/* =====================
+   Variables y resets
+   ===================== */
+   :root {
+    --primary: #0a273f;
+    --light-bg: #f5f5f5;
+    --card-bg: #ffffff;
+    --card-shadow: rgba(0, 0, 0, 0.05);
+    --text-main: #333333;
+    --text-light: #666666;
+    --border-radius: 8px;
+    --spacing: 16px;
+    --transition: 0.2s ease-in-out;
+  }
+  
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: "Segoe UI", Roboto, sans-serif;
+    background: var(--light-bg);
+    color: var(--text-main);
+    line-height: 1.5;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+  
+  /* =====================
+     Layout general
+     ===================== */
+  header {
+    background: var(--primary);
+    color: white;
+    padding: var(--spacing) calc(var(--spacing) * 2);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  header .logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+    text-decoration: none;
+    color: white;
+  }
+  
+  header nav a {
+    color: white;
+    text-decoration: none;
+    margin-left: var(--spacing);
+    font-weight: 500;
+    transition: opacity var(--transition);
+  }
+  
+  header nav a:hover {
+    opacity: 0.8;
+  }
+  
+  main {
+    flex: 1;
+    max-width: 900px;
+    margin: var(--spacing) auto;
+    padding: 0 var(--spacing);
+  }
+  
+  footer {
+    text-align: center;
+    padding: var(--spacing);
+    background: #e0e0e0;
+    color: var(--text-light);
+    font-size: 0.9rem;
+  }
+  
+  /* =====================
+     Botones
+     ===================== */
+  .btn {
+    display: inline-block;
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 0.75em 1.5em;
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    cursor: pointer;
+    transition: filter var(--transition);
+    text-align: center;
+    text-decoration: none;
+  }
+  
+  .btn:hover {
+    filter: brightness(1.1);
+  }
+  
+  .btn-primary {
+    background: var(--primary);
+  }
+  
+  .btn-secondary {
+    background: #888888;
+  }
+  
+  /* =====================
+     Tarjetas
+     ===================== */
+  .card {
+    background: var(--card-bg);
+    border-radius: var(--border-radius);
+    box-shadow: 0 2px 8px var(--card-shadow);
+    padding: var(--spacing);
+    margin-bottom: var(--spacing);
+  }
+  
+  .card-title {
+    font-size: 1.25rem;
+    margin-bottom: var(--spacing);
+    color: var(--primary);
+  }
+  
+  /* =====================
+     Inputs / Selects
+     ===================== */
+  .input,
+  .text-input,
+  .file-input,
+  .select-input {
+    width: 100%;
+    max-width: 300px;
+    padding: 0.5em;
+    margin-top: 0.5em;
+    margin-bottom: var(--spacing);
+    border: 1px solid #ccc;
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    transition: border var(--transition);
+  }
+  
+  .input:focus,
+  .text-input:focus,
+  .file-input:focus,
+  .select-input:focus {
+    outline: none;
+    border-color: var(--primary);
+  }
+  
+  /* =====================
+     Formularios inline
+     ===================== */
+  .form-group-inline {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+  }
+  
+  /* =====================
+     Scanner (QR)
+     ===================== */
+  .qr-reader {
+    width: 100%;
+    max-width: 480px;
+    margin: var(--spacing) auto;
+    border: 1px solid #ddd;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+  }
+  
+  /* =====================
+     Divider entre secciones
+     ===================== */
+  .divider {
+    font-weight: 500;
+    margin-top: var(--spacing);
+    margin-bottom: 0.5em;
+    color: var(--text-light);
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 0.25em;
+  }
+  
+  /* =====================
+     Tabla de detalle
+     ===================== */
+  .detail-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: var(--spacing);
+  }
+  
+  .detail-table th,
+  .detail-table td {
+    padding: 0.75em;
+    text-align: left;
+  }
+  
+  .detail-table th {
+    background: #fafafa;
+    color: var(--text-light);
+  }
+  
+  .detail-table tr:nth-child(even) td {
+    background: #f9f9f9;
+  }
+  
+  /* =====================
+     Página de inicio
+     ===================== */
+  .page-title {
+    text-align: center;
+    margin-bottom: var(--spacing);
+    font-size: 2rem;
+    color: var(--primary);
+  }
+  
+  .home-buttons {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing);
+    margin-top: var(--spacing);
+  }
+  
+  .home-buttons .btn {
+    /* ancho automático según texto */
+    width: auto;
+    min-width: 160px;
+  }
+  
+  /* =====================
+     Responsive
+     ===================== */
+  @media (max-width: 600px) {
+    header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  
+    header nav {
+      margin-top: 0.5em;
+    }
+  
+    .form-group-inline {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  
+    .home-buttons .btn {
+      width: 100%;
+    }
+    /* separator line between sections */
+.section-divider {
+  border: none;
+  border-top: 1px solid #eee;
+  margin: var(--spacing) 0;
+}
+/* =====================
+   Historial & detalle responsivo
+   ===================== */
+
+/* Contenedor que añade scroll horizontal solo si la tabla es más ancha que el viewport */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  margin-top: var(--spacing);
+  /* smooth scrolling en móviles iOS */
+  -webkit-overflow-scrolling: touch;
+}
+}
+
+/* Aplica a ambas tablas (historial y detalle) */
+.detail-table,
+.history-table {
+  width: 100%;            /* ocupa todo el ancho disponible */
+  border-collapse: collapse;
+}
+
+/* Celdas y cabecera */
+.detail-table th,
+.detail-table td,
+.history-table th,
+.history-table td {
+  padding: 0.75em;
+  text-align: left;
+  border-bottom: 1px solid #e0e0e0;
+  white-space: normal;     /* permite saltos de línea internos */
+  word-break: break-word;  /* evita que palabras largas salte tablas */
+  font-size: 0.95rem;
+}
+
+/* Cabecera sticky */
+.detail-table thead th,
+.history-table thead th {
+  background: var(--light-bg);
+  color: var(--text-light);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+/* Alterna color en filas pares */
+.detail-table tbody tr:nth-child(even) td,
+.history-table tbody tr:nth-child(even) td {
+  background: var(--card-bg);
+}
+
+/* Mensaje “no hay resultados” centrado */
+.detail-table .no-results,
+.history-table .no-results {
+  text-align: center;
+  color: var(--text-light);
+}
+
+/* Tipografía y padding más pequeños en pantallas muy estrechas */
+@media (max-width: 600px) {
+  .detail-table th,
+  .detail-table td,
+  .history-table th,
+  .history-table td {
+    font-size: 0.85rem;
+    padding: 0.5em;
+  }
+}
+
+/* =====================
+   Filtros en Historial
+   ===================== */
+
+.form-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing);
+  margin-bottom: var(--spacing);
+}
+
+.form-filters .filter-button {
+  align-self: flex-end;
+}
+  /* =====================
+   Formulario de filtros
+   ===================== */
+.form-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing);
+  margin-bottom: var(--spacing);
+  align-items: flex-end;
+}
+
+.form-filters > div {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Empuja el botón de filtrar al extremo derecho */
+.form-filters .filter-button {
+  margin-left: auto;
+}
+
+/* =====================
+   Contenedor título + filtros
+   ===================== */
+   .card-header-filters {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--spacing);
+    margin-bottom: var(--spacing);
+  }
+  
+  /* Form inline reducido */
+  .form-filters-inline {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .form-filters-inline .small {
+    padding: 0.4em 0.6em;
+    font-size: 0.85rem;
+  }
+  
+  /* Asegura que el botón no crezca demasiado */
+  .form-filters-inline .btn.small {
+    white-space: nowrap;
+  }
+  
+  /* =====================
+     Tabla responsiva
+     ===================== */
+  .table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    margin-top: var(--spacing);
+  }
+  
+  .history-table {
+    width: 100%;
+    min-width: 800px;
+    border-collapse: collapse;
+  }
+  
+  .history-table th,
+  .history-table td {
+    padding: 0.75em;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+    word-break: break-word;
+  }
+  
+  .history-table thead th {
+    background: var(--light-bg);
+    color: var(--text-light);
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+  
+  .history-table tbody tr:nth-child(even) td {
+    background: var(--card-bg);
+  }
+  
+  .history-table .no-results {
+    text-align: center;
+    color: var(--text-light);
+  }
+  
+  @media (max-width: 600px) {
+    .history-table th,
+    .history-table td {
+      font-size: 0.85rem;
+      padding: 0.5em;
+    }
+    .form-filters-inline {
+      display: flex;
+      align-items: flex-start;
+      gap: 3rem;
+    }
+    
+    .form-filters-inline .btn.small {
+      margin-left: flex-start;  /* Empuja al final del flex container */
+    }
+    
+    .card-header-filters h2 {
+      width: 100%;
+      margin-bottom: var(--spacing);
+      text-align: center;
+    }
+  }
+/* Dentro de tu style.css, tras la sección de .form-filters-inline */
+.form-filters-inline .text-input.small,
+.form-filters-inline .select-input.small {
+  width: auto;        /* Que se ajusten al contenido, no a todo el ancho */
+  min-width: 100px;   /* Opcional, para que no sean demasiado pequeños */
+}
+
+.form-filters-inline .btn.small {
+  margin-left: 1rem;  /* Separación respecto al último select */
+}
+  /* =====================
+   Logo en el header
+   ===================== */
+header h1 {
+  display: flex;
+  align-items: center;
+}
+
+.header-logo {
+  height: 32px;           /* Ajústalo si quieres otro tamaño */
+  margin-right: 0.5rem;   /* Espacio entre logo y texto */
+  vertical-align: middle;
+}

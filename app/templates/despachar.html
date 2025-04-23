@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block title %}Despachar Pedido{% endblock %}
+
+{% block content %}
+<div class="card">
+  <h2>🚚 Despachar Pedido</h2>
+
+  <!-- Contenedor centrado para el lector QR -->
+  <div id="reader-container" style="display:flex; justify-content:center; margin-top:1rem;">
+    <div id="reader" style="width:400px; height:300px;"></div>
+  </div>
+  <div style="text-align:center; margin-top:0.5rem;">
+    <button id="stop-btn" class="btn">Detener escaneo</button>
+  </div>
+
+  <hr style="margin: 2rem 0;">
+
+  <p><strong>O subí una imagen de QR:</strong></p>
+  <input type="file" id="input-qr" accept="image/*" class="file-input"><br><br>
+
+  <p><strong>O ingresa manualmente el ID de pedido:</strong></p>
+  <div style="display:flex; align-items:center; gap:1rem;">
+    <input type="text" id="manual-id" placeholder="Ingresar ID de pedido" class="text-input">
+    <button id="btn-buscar" class="btn btn-primary">Buscar</button>
+  </div>
+
+  <p><strong>Seleccionar logística:</strong></p>
+  <select id="select-logistica" class="select-input">
+    {% for log in logisticas %}
+      <option value="{{ log }}">{{ log }}</option>
+    {% endfor %}
+  </select>
+
+  <!-- Detalle del pedido y botón Despachar -->
+  <div id="detalle-pedido" class="card detail-card" style="display:none; margin-top:1.5rem;">
+    <!-- aquí se inyecta la tabla de detalle -->
+    <div style="text-align:center; margin-top:1rem;">
+      <button id="btn-despachar" class="btn btn-primary">🚚 Despachar</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/html5-qrcode.min.js"></script>
+<script>
+  const scanner = new Html5Qrcode("reader");
+  let currentOrderId = null;
+
+  // Arranca el escáner nada más cargar la página
+  window.addEventListener('DOMContentLoaded', () => {
+    scanner.start(
+      { facingMode: "environment" },
+      { fps: 10, qrbox: 250 },
+      decoded => onScanned(decoded),
+      _err => {}
+    );
+    document.getElementById('stop-btn').innerText = 'Detener escaneo';
+  });
+
+  // Detener / reanudar escaneo
+  document.getElementById('stop-btn').onclick = () => {
+    if (scanner._isScanning) {
+      scanner.stop().then(() => {
+        document.getElementById('stop-btn').innerText = 'Reanudar escaneo';
+      });
+    } else {
+      scanner.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: 250 },
+        decoded => onScanned(decoded),
+        _err => {}
+      );
+      document.getElementById('stop-btn').innerText = 'Detener escaneo';
+    }
+  };
+
+  // Leer QR desde archivo
+  document.getElementById('input-qr').addEventListener('change', e => {
+    if (!e.target.files.length) return;
+    scanner.scanFile(e.target.files[0], true)
+        .then(decoded => onScanned(decoded))
+        .catch(() => alert('❌ No se pudo leer el QR.'));
+  });
+
+  // Búsqueda manual
+  document.getElementById('btn-buscar').onclick = () => {
+    const id = document.getElementById('manual-id').value.trim();
+    if (id) onScanned(id);
+  };
+
+  // Cuando se escanea o ingresa ID manual
+  function onScanned(orderID) {
+    currentOrderId = orderID;
+
+    // Detenemos el escáner para no recibir más callbacks
+    if (scanner._isScanning) {
+      scanner.stop().catch(()=>{});
+      document.getElementById('stop-btn').innerText = 'Reanudar escaneo';
+    }
+
+    // Mostramos la sección de detalle y el botón Despachar
+    document.getElementById('detalle-pedido').style.display = 'block';
+
+    // Fijamos el handler del botón Despachar
+    document.getElementById('btn-despachar').onclick = onDispatchClicked;
+  }
+
+  // Al hacer click en “Despachar”
+  function onDispatchClicked() {
+    if (!currentOrderId) {
+      return alert('❌ No hay ningún pedido seleccionado.');
+    }
+    const logistica = document.getElementById('select-logistica').value;
+
+    fetch('/despachar', {
+      method: 'POST',
+      headers: {'Content-Type':'application/x-www-form-urlencoded'},
+      body: new URLSearchParams({
+        order_id: currentOrderId,
+        logistica: logistica
+      })
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        alert(data.mensaje || '✅ Pedido despachado correctamente');
+        location.reload();  // recarga para limpiar y listar siguientes
+      } else {
+        alert(data.error || '❌ No se pudo despachar el pedido');
+      }
+    })
+    .catch(() => alert('❌ Error de red al despachar'));
+  }
+</script>
+{% endblock %}

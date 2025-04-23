@@ -1,0 +1,39 @@
+<!-- app/templates/configuracion.html -->
+{% extends "base.html" %}
+
+{% block content %}
+  <section style="max-width: 500px; margin: 3rem auto; color: var(--petroleo);">
+    <h2 style="font-size: 1.8rem; margin-bottom: 1.5rem;">⚙️ Configuración de Logísticas</h2>
+    
+    <form method="post" style="display: flex; gap: .5rem; margin-bottom: 2rem;">
+      <input 
+        type="text" 
+        name="logistica" 
+        placeholder="Nueva logística…" 
+        required
+        style="flex: 1; padding: .6rem; border: 2px solid var(--petroleo); border-radius: 4px; font-size: 1rem;"
+      >
+      <button type="submit" class="btn-primary" style="width: auto; padding: .6rem 1.2rem;">
+        ➕ Agregar
+      </button>
+    </form>
+
+    {% if logisticas %}
+      <ul style="list-style: none; padding: 0; margin-bottom: 2rem;">
+        {% for l in logisticas %}
+          <li style="background: var(--petroleo); color: var(--blanco); 
+                     padding: .6rem 1rem; border-radius: 4px; 
+                     font-size: 1rem; margin-bottom: .5rem;">
+            {{ l }}
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p style="font-style: italic; color: #666;">No hay logísticas configuradas aún.</p>
+    {% endif %}
+
+    <div style="text-align: center; margin-top: 2rem;">
+      <a href="/" class="btn-secondary">← Volver al Inicio</a>
+    </div>
+  </section>
+{% endblock %}
