@@ -7,7 +7,6 @@
   <!-- HEADER: título + filtros en línea -->
   <div class="card-header-filters">
     <h2>📜 Historial de Pedidos</h2>
-
     <form method="get" action="/historial" class="form-filters-inline">
       <input type="text"   name="order_id"   value="{{ order_id }}"   placeholder="ID pedido" class="text-input small">
       <input type="date"   name="date_from"  value="{{ date_from }}"  class="text-input small">
@@ -28,8 +27,8 @@
     </form>
   </div>
 
-  <!-- TABLA -->
-  <div class="table-responsive">
+  <!-- ===== Versión de escritorio: tabla scrollable ===== -->
+  <div class="table-responsive desktop-only">
     <table class="history-table">
       <thead>
         <tr>
@@ -62,5 +61,26 @@
       </tbody>
     </table>
   </div>
+
+  <!-- ===== Versión móvil: listado de cards ===== -->
+  <div class="mobile-only">
+    {% if pedidos|length == 0 %}
+      <p class="no-results">No hay pedidos que coincidan.</p>
+    {% else %}
+      {% for p in pedidos %}
+        <div class="card history-card">
+          <p><strong>ID:</strong> {{ p.order_id }}</p>
+          <p><strong>Cliente:</strong> {{ p.cliente }}</p>
+          <p><strong>Título:</strong> {{ p.titulo }}</p>
+          <p><strong>Cantidad:</strong> {{ p.cantidad }}</p>
+          <p><strong>Estado:</strong> {{ p.estado }}</p>
+          <p><strong>Armado:</strong> {{ p.fecha_armado or '—' }}</p>
+          <p><strong>Despacho:</strong> {{ p.fecha_despacho or '—' }}</p>
+          <p><strong>Logística:</strong> {{ p.logistica or '—' }}</p>
+        </div>
+      {% endfor %}
+    {% endif %}
+  </div>
+
 </div>
 {% endblock %}
