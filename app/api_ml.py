@@ -105,11 +105,19 @@ def parse_order_data(order_data: dict, headers: dict):
         "items":   salida
     }
 def get_shipment_by_id(shipment_id: str) -> dict:
+    token = get_valid_token()
+    if not token:
+        return {}
+
     url = f"https://api.mercadolibre.com/shipments/{shipment_id}"
-    resp = requests.get(url)
+    headers = {"Authorization": f"Bearer {token}"}
+    resp = requests.get(url, headers=headers)
+
     if resp.status_code != 200:
         return {}
-    return resp.json()        
+    return resp.json()
+
+    
 
 def get_order_details(order_id: str):
     token = get_valid_token()
