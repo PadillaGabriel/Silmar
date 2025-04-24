@@ -117,37 +117,118 @@ def get_shipment_by_id(shipment_id: str) -> dict:
         return {}
     return resp.json()
 
-    
-
-def get_order_details(order_id: str):
+def get_order_details(code: str):
     token = get_valid_token()
     if not token:
-        return {"cliente":"Error","items":[]}
+        return {"cliente": "Error", "items": []}
     headers = {"Authorization": f"Bearer {token}"}
 
-    # 1) /orders/{order_id}
-    r1 = requests.get(f"https://api.mercadolibre.com/orders/{order_id}", headers=headers)
+    # 1) ¿Es un order_id directamente?
+    r1 = requests.get(f"https://api.mercadolibre.com/orders/{code}", headers=headers)
     if r1.status_code == 200:
-        return parse_order_data(r1.json(), headers)
+        order_data = r1.json()
+        cliente = order_data.get("buyer", {}).get("nickname", "Sin nombre")
+        salida = []
 
-    # 2) /shipments/{order_id}
-    r2 = requests.get(f"https://api.mercadolibre.com/shipments/{order_id}", headers=headers)
+        for oi in order_data.get("order_items", []):
+            prod = oi["item"]
+            item_id = prod["id"]
+            variation_id = prod.get("variation_id")
+            attrs = prod.get("variation_attributes", [])
+            variante = attrs[0]["value_name"] if attrs else "—"
+
+            # SKU desde publicación
+            sku = "Sin SKU"
+            item_data = requests.get(f"https://api.mercadolibre.com/items/{item_id}", headers=headers)
+            if item_data.status_code == 200:
+                sku = item_data.json().get("seller_custom_field") or "Sin SKU"
+
+            # Imágenes
+            imgs = fetch_variation_images(item_id, variation_id, headers) if variation_id else fetch_item_images(item_id, headers)
+            if not imgs:
+                imgs = [{"url": DEFAULT_IMG, "thumbnail": DEFAULT_IMG}]
+
+            salida.append({
+                "titulo": prod.get("title", "Sin título"),
+                "sku": sku,
+                "imagenes": imgs,
+                "variante": variante,
+                "cantidad": oi.get("quantity", 0)
+            })
+
+        return {"cliente": cliente, "items": salida}
+
+    # 2) ¿Es un shipment_id?
+    r2 = requests.get(f"https://api.mercadolibre.com/shipments/{code}", headers=headers)
     if r2.status_code == 200:
-        real_id = r2.json().get("order_id")
-        if real_id:
-            r3 = requests.get(f"https://api.mercadolibre.com/orders/{real_id}", headers=headers)
-            if r3.status_code == 200:
-                return parse_order_data(r3.json(), headers)
+        shipment = r2.json()
+        order_id = shipment.get("order_id")
 
-    # 3) /packs/{order_id}
-    r4 = requests.get(f"https://api.mercadolibre.com/packs/{order_id}", headers=headers)
-    if r4.status_code == 200:
+        # Cliente
+        cliente = "Sin nombre"
+        if order_id:
+            r_order = requests.get(f"https://api.mercadolibre.com/orders/{order_id}", headers=headers)
+            if r_order.status_code == 200:
+                cliente = r_order.json().get("buyer", {}).get("nickname", "Sin nombre")
+
+        salida = []
+        for item in shipment.get("shipping_items", []):
+            item_id = item["id"]
+            cantidad = item["quantity"]
+            titulo = item["description"]
+
+            # SKU real
+            sku = "Sin SKU"
+            item_data = requests.get(f"https://api.mercadolibre.com/items/{item_id}", headers=headers)
+            if item_data.status_code == 200:
+                sku = item_data.json().get("seller_custom_field") or "Sin SKU"
+
+            # Imágenes
+            imgs = fetch_item_images(item_id, headers)
+            if not imgs:
+                imgs = [{"url": DEFAULT_IMG, "thumbnail": DEFAULT_IMG}]
+
+            salida.append({
+                "titulo": titulo,
+                "sku": sku,
+                "imagenes": imgs,
+                "variante": "—",
+                "cantidad": cantidad
+            })
+
+        return {"cliente": cliente, "items": salida}
+
+    # 3) ¿Es un pack_id?
+    r3 = requests.get(f"https://api.mercadolibre.com/packs/{code}", headers=headers)
+    if r3.status_code == 200:
         all_items = []
-        for o in r4.json().get("orders", []):
-            rp = requests.get(f"https://api.mercadolibre.com/orders/{o['id']}", headers=headers)
-            if rp.status_code == 200:
-                all_items += parse_order_data(rp.json(), headers)["items"]
-        return {"cliente":"Pedido pack","items":all_items}
+        for o in r3.json().get("orders", []):
+            ro = requests.get(f"https://api.mercadolibre.com/orders/{o['id']}", headers=headers)
+            if ro.status_code == 200:
+                order_data = ro.json()
+                for oi in order_data.get("order_items", []):
+                    prod = oi["item"]
+                    item_id = prod["id"]
+                    variation_id = prod.get("variation_id")
+                    attrs = prod.get("variation_attributes", [])
+                    variante = attrs[0]["value_name"] if attrs else "—"
 
-    # si llegamos aquí, no hubo éxito
-    return {"cliente":"Error","items":[]}
+                    sku = "Sin SKU"
+                    item_data = requests.get(f"https://api.mercadolibre.com/items/{item_id}", headers=headers)
+                    if item_data.status_code == 200:
+                        sku = item_data.json().get("seller_custom_field") or "Sin SKU"
+
+                    imgs = fetch_variation_images(item_id, variation_id, headers) if variation_id else fetch_item_images(item_id, headers)
+                    if not imgs:
+                        imgs = [{"url": DEFAULT_IMG, "thumbnail": DEFAULT_IMG}]
+
+                    all_items.append({
+                        "titulo": prod.get("title", "Sin título"),
+                        "sku": sku,
+                        "imagenes": imgs,
+                        "variante": variante,
+                        "cantidad": oi.get("quantity", 0)
+                    })
+        return {"cliente": "Pack de productos", "items": all_items}
+
+    return {"cliente": "Error", "items": []}
