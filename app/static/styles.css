@@ -32,14 +32,30 @@
   /* =====================
      Layout general
      ===================== */
-  header {
-    background: var(--primary);
-    color: white;
-    padding: var(--spacing) calc(var(--spacing) * 2);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
+     @media (max-width: 600px) {
+      header {
+        position: sticky;      /* se queda arriba al hacer scroll */
+        top: 0;
+        z-index: 1000;
+        flex-direction: column;
+        align-items: stretch;
+        padding: var(--spacing);
+      }
+    
+      /* Nav horizontal con scroll */
+      header nav {
+        display: flex;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        margin-top: 0.5rem;
+      }
+      header nav a {
+        flex: 0 0 auto;        /* cada enlace ocupa solo lo suyo */
+        margin: 0 0.75rem 0 0;
+        font-size: 0.9rem;
+      }
+    }
+    
   
   header h1 {
     display: flex;
@@ -170,14 +186,30 @@
   /* =====================
      Scanner (QR)
      ===================== */
-  .qr-reader {
-    width: 100%;
-    max-width: 480px;
-    margin: var(--spacing) auto;
-    border: 1px solid #ddd;
-    border-radius: var(--border-radius);
-    overflow: hidden;
-  }
+     .qr-reader {
+      position: relative;
+      width: 100%;
+      max-width: 480px;
+      margin: var(--spacing) auto;
+      border: 1px solid #ddd;
+      border-radius: var(--border-radius);
+      overflow: hidden;
+    }
+    
+    /* fuerza proporción 1:1 y cover dentro */
+    .qr-reader::before {
+      content: "";
+      display: block;
+      padding-top: 100%;    /* alto = ancho */
+    }
+    .qr-reader video,
+    .qr-reader canvas {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+    }
+    
   
   /* =====================
      Divider entre secciones
@@ -200,7 +232,18 @@
   /* =====================
      Tablas base
      ===================== */
-  .detail-table,
+     @media (max-width: 600px) {
+      /* Aseguramos que no “parta” palabra a palabra */
+      .history-table th,
+      .history-table td {
+        white-space: nowrap;
+        font-size: 0.85rem;
+        padding: 0.5em;
+      }
+    }
+      
+  
+     .detail-table,
   .history-table {
     width: 100%;
     border-collapse: collapse;
@@ -425,3 +468,18 @@
     }
   }
   
+
+  /* mostrar/ocultar según ancho */
+.desktop-only { display: block; }
+.mobile-only  { display: none; }
+
+@media (max-width: 600px) {
+  .desktop-only { display: none; }
+  .mobile-only  { display: block; }
+
+  /* opcional: estilo extra para las cards del historial */
+  .history-card {
+    margin-bottom: var(--spacing);
+    padding: var(--spacing);
+  }
+}
