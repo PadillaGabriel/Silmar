@@ -41,6 +41,30 @@
         align-items: stretch;
         padding: var(--spacing);
       }
+
+      /* =====================
+   Header: fondo y texto
+   ===================== */
+header {
+  background: var(--primary) !important;
+  color: white !important;
+  /* si quieres que quede fijo en desktop también: */
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+/* enlaces en header siempre blancos */
+header nav a {
+  color: white !important;
+}
+
+/* logo/título en header siempre blanco */
+header .logo,
+header h1 {
+  color: white !important;
+}
+
     
       /* Nav horizontal con scroll */
       header nav {
