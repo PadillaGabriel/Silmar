@@ -41,6 +41,17 @@
     justify-content: space-between;
   }
   
+  header h1 {
+    display: flex;
+    align-items: center;
+  }
+  
+  .header-logo {
+    height: 32px;
+    margin-right: 0.5rem;
+    vertical-align: middle;
+  }
+  
   header .logo {
     font-size: 1.5rem;
     font-weight: bold;
@@ -180,32 +191,56 @@
     padding-bottom: 0.25em;
   }
   
+  .section-divider {
+    border: none;
+    border-top: 1px solid #eee;
+    margin: var(--spacing) 0;
+  }
+  
   /* =====================
-     Tabla de detalle
+     Tablas base
      ===================== */
-  .detail-table {
+  .detail-table,
+  .history-table {
     width: 100%;
     border-collapse: collapse;
     margin-top: var(--spacing);
   }
   
   .detail-table th,
-  .detail-table td {
+  .detail-table td,
+  .history-table th,
+  .history-table td {
     padding: 0.75em;
     text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+    white-space: normal;
+    word-break: break-word;
+    font-size: 0.95rem;
   }
   
-  .detail-table th {
-    background: #fafafa;
+  .detail-table th,
+  .history-table thead th {
+    background: var(--light-bg);
+    color: var(--text-light);
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+  
+  .detail-table tr:nth-child(even) td,
+  .history-table tbody tr:nth-child(even) td {
+    background: var(--card-bg);
+  }
+  
+  .detail-table .no-results,
+  .history-table .no-results {
+    text-align: center;
     color: var(--text-light);
   }
   
-  .detail-table tr:nth-child(even) td {
-    background: #f9f9f9;
-  }
-  
   /* =====================
-     Página de inicio
+     Pantalla de inicio
      ===================== */
   .page-title {
     text-align: center;
@@ -223,154 +258,30 @@
   }
   
   .home-buttons .btn {
-    /* ancho automático según texto */
     width: auto;
     min-width: 160px;
   }
   
   /* =====================
-     Responsive
+     Form filtros
      ===================== */
-  @media (max-width: 600px) {
-    header {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-  
-    header nav {
-      margin-top: 0.5em;
-    }
-  
-    .form-group-inline {
-      flex-direction: column;
-      align-items: stretch;
-    }
-  
-    .home-buttons .btn {
-      width: 100%;
-    }
-    /* separator line between sections */
-.section-divider {
-  border: none;
-  border-top: 1px solid #eee;
-  margin: var(--spacing) 0;
-}
-/* =====================
-   Historial & detalle responsivo
-   ===================== */
-
-/* Contenedor que añade scroll horizontal solo si la tabla es más ancha que el viewport */
-.table-responsive {
-  width: 100%;
-  overflow-x: auto;
-  margin-top: var(--spacing);
-  /* smooth scrolling en móviles iOS */
-  -webkit-overflow-scrolling: touch;
-}
-}
-
-/* Aplica a ambas tablas (historial y detalle) */
-.detail-table,
-.history-table {
-  width: 100%;            /* ocupa todo el ancho disponible */
-  border-collapse: collapse;
-}
-
-/* Celdas y cabecera */
-.detail-table th,
-.detail-table td,
-.history-table th,
-.history-table td {
-  padding: 0.75em;
-  text-align: left;
-  border-bottom: 1px solid #e0e0e0;
-  white-space: normal;     /* permite saltos de línea internos */
-  word-break: break-word;  /* evita que palabras largas salte tablas */
-  font-size: 0.95rem;
-}
-
-/* Cabecera sticky */
-.detail-table thead th,
-.history-table thead th {
-  background: var(--light-bg);
-  color: var(--text-light);
-  position: sticky;
-  top: 0;
-  z-index: 2;
-}
-
-/* Alterna color en filas pares */
-.detail-table tbody tr:nth-child(even) td,
-.history-table tbody tr:nth-child(even) td {
-  background: var(--card-bg);
-}
-
-/* Mensaje “no hay resultados” centrado */
-.detail-table .no-results,
-.history-table .no-results {
-  text-align: center;
-  color: var(--text-light);
-}
-
-/* Tipografía y padding más pequeños en pantallas muy estrechas */
-@media (max-width: 600px) {
-  .detail-table th,
-  .detail-table td,
-  .history-table th,
-  .history-table td {
-    font-size: 0.85rem;
-    padding: 0.5em;
-  }
-}
-
-/* =====================
-   Filtros en Historial
-   ===================== */
-
-.form-filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing);
-  margin-bottom: var(--spacing);
-}
-
-.form-filters .filter-button {
-  align-self: flex-end;
-}
-  /* =====================
-   Formulario de filtros
-   ===================== */
-.form-filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing);
-  margin-bottom: var(--spacing);
-  align-items: flex-end;
-}
-
-.form-filters > div {
-  display: flex;
-  flex-direction: column;
-}
-
-/* Empuja el botón de filtrar al extremo derecho */
-.form-filters .filter-button {
-  margin-left: auto;
-}
-
-/* =====================
-   Contenedor título + filtros
-   ===================== */
-   .card-header-filters {
+  .form-filters {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
     flex-wrap: wrap;
     gap: var(--spacing);
     margin-bottom: var(--spacing);
+    align-items: flex-end;
   }
   
-  /* Form inline reducido */
+  .form-filters > div {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .form-filters .filter-button {
+    margin-left: auto;
+  }
+  
   .form-filters-inline {
     display: flex;
     align-items: center;
@@ -382,93 +293,135 @@
     font-size: 0.85rem;
   }
   
-  /* Asegura que el botón no crezca demasiado */
+  .form-filters-inline .text-input.small,
+  .form-filters-inline .select-input.small {
+    width: auto;
+    min-width: 100px;
+  }
+  
   .form-filters-inline .btn.small {
     white-space: nowrap;
+    margin-left: 1rem;
+  }
+  
+  .card-header-filters {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--spacing);
+    margin-bottom: var(--spacing);
   }
   
   /* =====================
-     Tabla responsiva
+     Contenedor de tablas con scroll
      ===================== */
   .table-responsive {
     width: 100%;
     overflow-x: auto;
     margin-top: var(--spacing);
+    -webkit-overflow-scrolling: touch;
   }
   
-  .history-table {
-    width: 100%;
-    min-width: 800px;
-    border-collapse: collapse;
+  /* =====================
+     Imágenes y SVG fluidos
+     ===================== */
+  img,
+  svg {
+    max-width: 100%;
+    height: auto;
   }
   
-  .history-table th,
-  .history-table td {
-    padding: 0.75em;
-    text-align: left;
-    border-bottom: 1px solid #e0e0e0;
-    word-break: break-word;
-  }
-  
-  .history-table thead th {
-    background: var(--light-bg);
-    color: var(--text-light);
-    position: sticky;
-    top: 0;
-    z-index: 2;
-  }
-  
-  .history-table tbody tr:nth-child(even) td {
-    background: var(--card-bg);
-  }
-  
-  .history-table .no-results {
-    text-align: center;
-    color: var(--text-light);
-  }
-  
+  /* =====================
+     Ajustes para móvil (max-width: 600px)
+     ===================== */
   @media (max-width: 600px) {
+    /* Header y navegación */
+    header {
+      flex-direction: column;
+      align-items: flex-start;
+      padding: var(--spacing);
+    }
+    header .logo {
+      font-size: 1.25rem;
+      margin-bottom: 0.5rem;
+    }
+    header nav {
+      margin-top: 0.5em;
+    }
+    header nav a {
+      margin: 0.25rem var(--spacing) 0;
+      font-size: 0.9rem;
+      padding: 0.25em 0;
+    }
+  
+    /* Contenedor principal */
+    main {
+      max-width: calc(100vw - 2 * var(--spacing));
+      margin: var(--spacing) auto;
+      padding: 0 var(--spacing);
+    }
+  
+    /* Botones */
+    .btn {
+      width: 100%;
+      padding: 1rem;
+      font-size: 1.1rem;
+    }
+    .home-buttons .btn {
+      min-width: 0;
+      width: 100%;
+    }
+  
+    /* Tarjetas */
+    .card {
+      padding: 0.75rem;
+      margin-bottom: var(--spacing);
+    }
+    .card-title {
+      font-size: 1rem;
+    }
+  
+    /* Inputs, selects y QR */
+    .input,
+    .text-input,
+    .file-input,
+    .select-input,
+    .qr-reader {
+      max-width: 100%;
+    }
+  
+    /* Títulos */
+    .page-title {
+      font-size: 1.5rem;
+    }
+  
+    /* Footer */
+    footer {
+      padding: var(--spacing) 0.5rem;
+      font-size: 0.8rem;
+    }
+  
+    /* Formularios inline */
+    .form-group-inline {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  
+    /* Tablas (detalle e historial) */
+    .detail-table th,
+    .detail-table td,
     .history-table th,
     .history-table td {
       font-size: 0.85rem;
       padding: 0.5em;
     }
-    .form-filters-inline {
-      display: flex;
-      align-items: flex-start;
-      gap: 3rem;
-    }
-    
-    .form-filters-inline .btn.small {
-      margin-left: flex-start;  /* Empuja al final del flex container */
-    }
-    
-    .card-header-filters h2 {
-      width: 100%;
-      margin-bottom: var(--spacing);
-      text-align: center;
+  
+    /* Divider adicional entre secciones */
+    .section-divider {
+      border: none;
+      border-top: 1px solid #eee;
+      margin: var(--spacing) 0;
     }
   }
-/* Dentro de tu style.css, tras la sección de .form-filters-inline */
-.form-filters-inline .text-input.small,
-.form-filters-inline .select-input.small {
-  width: auto;        /* Que se ajusten al contenido, no a todo el ancho */
-  min-width: 100px;   /* Opcional, para que no sean demasiado pequeños */
-}
-
-.form-filters-inline .btn.small {
-  margin-left: 1rem;  /* Separación respecto al último select */
-}
-  /* =====================
-   Logo en el header
-   ===================== */
-header h1 {
-  display: flex;
-  align-items: center;
-}
-
-.header-logo {
-  height: 32px;           /* Ajústalo si quieres otro tamaño */
-  margin-right: 0.5rem;   /* Espacio entre logo y texto */
-  vertical-align: middle;
-}
+  
