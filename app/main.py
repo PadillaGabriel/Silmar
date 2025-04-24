@@ -52,17 +52,14 @@ def escanear_post(shipment_id: str = Form(...)):
         parsed = json.loads(shipment_id)
         shipment_id_real = parsed.get("id")
     except Exception:
-        shipment_id_real = shipment_id  # fallback: ID plano
+        shipment_id_real = shipment_id
 
     print("🔍 ID real:", shipment_id_real)
-    shipment = get_shipment_by_id(shipment_id_real)
-    print("📦 Datos recibidos:", shipment)
+    detalle = get_order_details(shipment_id_real)
+    print("📦 Detalle generado:", detalle)
 
-    if not shipment or "order_id" not in shipment:
+    if not detalle or not detalle["items"]:
         return JSONResponse({"success": False})
-
-    order_id = shipment["order_id"]
-    detalle = get_order_details(order_id)
 
     return JSONResponse({
         "success": True,
