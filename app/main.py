@@ -12,8 +12,7 @@ from app.database import (
     add_order_if_not_exists,
     marcar_pedido_armado,
     marcar_pedido_despachado,
-    get_all_pedidos,
-    get_shipment_by_id          # <- Importamos la función de filtrado
+    get_all_pedidos         # <- Importamos la función de filtrado
 )
 
 app = FastAPI()
