@@ -12,7 +12,8 @@ from app.database import (
     add_order_if_not_exists,
     marcar_pedido_armado,
     marcar_pedido_despachado,
-    get_all_pedidos          # <- Importamos la función de filtrado
+    get_all_pedidos,
+    get_shipment_by_id          # <- Importamos la función de filtrado
 )
 
 app = FastAPI()
@@ -48,24 +49,38 @@ def escanear_get(request: Request):
 @app.post("/escanear", response_class=JSONResponse)
 def escanear_post(
     request: Request,
-    order_id:     str | None = Form(None),
-    shipment_id:  str | None = Form(None),
+    order_id:    str | None = Form(None),
+    shipment_id: str | None = Form(None),
 ):
-    # Prioriza búsqueda por shipment_id
-    id_buscar = shipment_id or order_id
-    if not id_buscar:
+    # 1) Determinar cuál ID usar
+    target_order_id = order_id
+    if shipment_id:
+        shipment = get_shipment_by_id(shipment_id)
+        # Extraemos el order_id desde el objeto "order"
+        order_obj = shipment.get("order", {})
+        extracted = order_obj.get("id")
+        if not extracted:
+            return JSONResponse({"success": False})
+        target_order_id = extracted
+
+    # 2) Validación
+    if not target_order_id:
         return JSONResponse({"success": False})
 
-    detalle = get_order_details(id_buscar)
+    # 3) Llamada a ML para obtener detalles
+    detalle = get_order_details(target_order_id)
     if detalle.get("cliente") == "Error":
         return JSONResponse({"success": False})
 
+    # 4) Guardar en BD si es nuevo
     primero = detalle["items"][0]
-    add_order_if_not_exists(id_buscar, {
+    add_order_if_not_exists(target_order_id, {
         "cliente": detalle["cliente"],
         "titulo":  primero["titulo"],
         "cantidad": primero["cantidad"],
     })
+
+    # 5) Responder al cliente
     return JSONResponse({"success": True, "detalle": detalle})
 
 
