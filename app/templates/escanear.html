@@ -82,54 +82,61 @@
   });
 
   function escanear(orderID) {
-    ultimoID = orderID;
-    fetch("/escanear", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({ order_id: orderID })
+  ultimoID = orderID;
+  fetch("/escanear", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    // <-- Aquí enviamos ambos campos:
+    body: new URLSearchParams({
+      order_id: orderID,
+      shipment_id: orderID
     })
-    .then(r => r.json())
-    .then(data => {
-      if (!data.success) return alert("❌ Pedido no encontrado.");
-      const detalle = data.detalle;
-      document.getElementById("cliente").innerText = detalle.cliente;
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (!data.success) return alert("❌ Pedido no encontrado.");
+    const detalle = data.detalle;
+    document.getElementById("cliente").innerText = detalle.cliente;
 
-      const tabla = document.getElementById("tabla-items");
-      tabla.innerHTML = "";  // limpiamos
+    const tabla = document.getElementById("tabla-items");
+    tabla.innerHTML = "";  // limpiamos
 
-      detalle.items.forEach(item => {
-        const variante = item.variante || "—";
-        const imagenUrl = Array.isArray(item.imagenes) && item.imagenes.length
-          ? item.imagenes[0].thumbnail
-          : "https://via.placeholder.com/150";
+    detalle.items.forEach(item => {
+      const variante = item.variante || "—";
+      const imagenUrl = Array.isArray(item.imagenes) && item.imagenes.length
+        ? item.imagenes[0].thumbnail
+        : "https://via.placeholder.com/150";
 
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td style="text-align:center;">
-            <img src="${imagenUrl}" width="80" style="border-radius:4px;">
-          </td>
-          <td>${item.titulo}</td>
-          <td>${item.sku}</td>
-          <td>${variante}</td>
-          <td>${item.cantidad}</td>
-        `;
-        tabla.appendChild(row);
-      });
-
-      // Mostrar sección de detalle y botón de armado
-      document.getElementById("detalle-pedido").style.display = "block";
-      document.getElementById("boton-armar").style.display = "inline-block";
-    })
-    .catch(err => {
-      console.error(err);
-      alert("❌ Error al obtener los detalles");
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td style="text-align:center;">
+          <img src="${imagenUrl}" width="80" style="border-radius:4px;">
+        </td>
+        <td>${item.titulo}</td>
+        <td>${item.sku}</td>
+        <td>${variante}</td>
+        <td>${item.cantidad}</td>
+      `;
+      tabla.appendChild(row);
     });
-  }
 
-  function buscarManual() {
-    const id = document.getElementById("manual-id").value.trim();
-    if (id) escanear(id);
+    // Mostrar sección de detalle y botón de armado
+    document.getElementById("detalle-pedido").style.display = "block";
+    document.getElementById("boton-armar").style.display = "inline-block";
+  })
+  .catch(err => {
+    console.error(err);
+    alert("❌ Error al obtener los detalles");
+  });
+}
+
+function buscarManual() {
+  const id = document.getElementById("manual-id").value.trim();
+  if (id) {
+    // reusa escanear() que ya manda order_id y shipment_id
+    escanear(id);
   }
+}
 
   document.getElementById("input-escanear").addEventListener("change", e => {
     if (!e.target.files.length) return;
