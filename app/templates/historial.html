@@ -7,29 +7,62 @@
   <!-- HEADER: título + filtros en línea -->
   <div class="card-header-filters">
     <h2>📜 Historial de Pedidos</h2>
-
     <form method="get" action="/historial" class="form-filters-inline">
-      <input type="text"   name="order_id"   value="{{ order_id }}"   placeholder="ID pedido" class="text-input small">
-      <input type="date"   name="date_from"  value="{{ date_from }}"  class="text-input small">
-      <input type="date"   name="date_to"    value="{{ date_to }}"    class="text-input small">
-      <select name="logistica" class="select-input small">
-        <option value="">Todas</option>
-        {% for log in logisticas %}
-          <option value="{{ log }}" {% if log==logistica %}selected{% endif %}>{{ log }}</option>
-        {% endfor %}
-      </select>
-      <select name="estado" class="select-input small">
-        <option value="">Todas</option>
-        <option value="pendiente"  {% if estado=='pendiente'  %}selected{% endif %}>Pendiente</option>
-        <option value="armado"     {% if estado=='armado'     %}selected{% endif %}>Armado</option>
-        <option value="despachado" {% if estado=='despachado' %}selected{% endif %}>Despachado</option>
-      </select>
-      <button type="submit" class="btn btn-primary small">Filtrar</button>
+      <div class="filter">
+        <label for="order_id">ID pedido</label>
+        <input id="order_id"
+               type="text"
+               name="order_id"
+               value="{{ order_id }}"
+               placeholder="ID pedido"
+               class="text-input small">
+      </div>
+      <div class="filter">
+        <label for="date_from">Desde</label>
+        <input id="date_from"
+               type="date"
+               name="date_from"
+               value="{{ date_from }}"
+               class="text-input small">
+      </div>
+      <div class="filter">
+        <label for="date_to">Hasta</label>
+        <input id="date_to"
+               type="date"
+               name="date_to"
+               value="{{ date_to }}"
+               class="text-input small">
+      </div>
+      <div class="filter">
+        <label for="logistica">Logística</label>
+        <select id="logistica"
+                name="logistica"
+                class="select-input small">
+          <option value="">Todas</option>
+          {% for log in logisticas %}
+            <option value="{{ log }}" {% if log==logistica %}selected{% endif %}>{{ log }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="filter">
+        <label for="estado">Estado</label>
+        <select id="estado"
+                name="estado"
+                class="select-input small">
+          <option value="">Todos</option>
+          <option value="pendiente"  {% if estado=='pendiente'  %}selected{% endif %}>Pendiente</option>
+          <option value="armado"     {% if estado=='armado'     %}selected{% endif %}>Armado</option>
+          <option value="despachado" {% if estado=='despachado' %}selected{% endif %}>Despachado</option>
+        </select>
+      </div>
+      <div class="filter filter--button">
+        <button type="submit" class="btn btn-primary small">Filtrar</button>
+      </div>
     </form>
   </div>
 
-  <!-- TABLA -->
-  <div class="table-responsive">
+  <!-- ===== Versión de escritorio: tabla scrollable ===== -->
+  <div class="table-responsive desktop-only">
     <table class="history-table">
       <thead>
         <tr>
@@ -62,5 +95,27 @@
       </tbody>
     </table>
   </div>
+
+  <!-- ===== Versión móvil: listado de cards ===== -->
+  <div class="mobile-only">
+    {% if pedidos|length == 0 %}
+      <p class="no-results">No hay pedidos que coincidan.</p>
+    {% else %}
+      {% for p in pedidos %}
+        <div class="card history-card">
+          <p><strong>ID:</strong> {{ p.order_id }}</p>
+          <p><strong>Cliente:</strong> {{ p.cliente }}</p>
+          <p><strong>Título:</strong> {{ p.titulo }}</p>
+          <p><strong>Cantidad:</strong> {{ p.cantidad }}</p>
+          <p><strong>Estado:</strong> {{ p.estado }}</p>
+          <p><strong>Armado:</strong> {{ p.fecha_armado or '—' }}</p>
+          <p><strong>Despacho:</strong> {{ p.fecha_despacho or '—' }}</p>
+          <p><strong>Logística:</strong> {{ p.logistica or '—' }}</p>
+        </div>
+      {% endfor %}
+    {% endif %}
+  </div>
+  
+
 </div>
 {% endblock %}
