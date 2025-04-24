@@ -6,6 +6,7 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
+from app.api_ml import get_shipment_by_id
 from app.api_ml import get_order_details
 from app.database import (
     init_db,
@@ -45,42 +46,28 @@ def inicio(request: Request):
 def escanear_get(request: Request):
     return templates.TemplateResponse("escanear.html", {"request": request})
 
-@app.post("/escanear", response_class=JSONResponse)
-def escanear_post(
-    request: Request,
-    order_id:    str | None = Form(None),
-    shipment_id: str | None = Form(None),
-):
-    # 1) Determinar cuál ID usar
-    target_order_id = order_id
-    if shipment_id:
-        shipment = get_shipment_by_id(shipment_id)
-        # Extraemos el order_id desde el objeto "order"
-        order_obj = shipment.get("order", {})
-        extracted = order_obj.get("id")
-        if not extracted:
-            return JSONResponse({"success": False})
-        target_order_id = extracted
+@app.post("/escanear")
+def escanear_post(shipment_id: str = Form(...)):
+    try:
+        parsed = json.loads(shipment_id)
+        shipment_id_real = parsed.get("id")
+    except Exception:
+        shipment_id_real = shipment_id  # fallback: ID plano
 
-    # 2) Validación
-    if not target_order_id:
+    print("🔍 ID real:", shipment_id_real)
+    shipment = get_shipment_by_id(shipment_id_real)
+    print("📦 Datos recibidos:", shipment)
+
+    if not shipment or "order_id" not in shipment:
         return JSONResponse({"success": False})
 
-    # 3) Llamada a ML para obtener detalles
-    detalle = get_order_details(target_order_id)
-    if detalle.get("cliente") == "Error":
-        return JSONResponse({"success": False})
+    order_id = shipment["order_id"]
+    detalle = get_order_details(order_id)
 
-    # 4) Guardar en BD si es nuevo
-    primero = detalle["items"][0]
-    add_order_if_not_exists(target_order_id, {
-        "cliente": detalle["cliente"],
-        "titulo":  primero["titulo"],
-        "cantidad": primero["cantidad"],
+    return JSONResponse({
+        "success": True,
+        "detalle": detalle
     })
-
-    # 5) Responder al cliente
-    return JSONResponse({"success": True, "detalle": detalle})
 
 
 @app.post("/armar", response_class=JSONResponse)
