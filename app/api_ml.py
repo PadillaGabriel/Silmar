@@ -74,13 +74,20 @@ def parse_order_data(order_data: dict, headers: dict):
     for oi in order_data.get("order_items", []):
         prod = oi["item"]
         item_id = prod["id"]
-        variation_id = prod.get("variation_id")  # puede ser None
+        variation_id = prod.get("variation_id")
 
-        # 1) Nombre de variante
+        # Variantes reales del pedido
         attrs = prod.get("variation_attributes", [])
-        variante_text = attrs[0]["value_name"] if attrs else "—"
+        if attrs:
+            variantes = [f"{a['name']}: {a['value_name']}" for a in attrs if a.get("value_name")]
+            variante = " | ".join(variantes)
+        else:
+            variante = "—"
 
-        # 2) Imágenes: variante o item
+        # SKU del producto en el pedido
+        sku = prod.get("seller_sku") or prod.get("seller_custom_field") or "Sin SKU"
+
+        # Imágenes
         if variation_id:
             imgs = fetch_variation_images(item_id, variation_id, headers)
         else:
@@ -88,22 +95,20 @@ def parse_order_data(order_data: dict, headers: dict):
         if not imgs:
             imgs = [{"url": DEFAULT_IMG, "thumbnail": DEFAULT_IMG}]
 
-        # 3) SKU real
-        sku = prod.get("seller_sku") or prod.get("seller_custom_field") or "Sin SKU"
-
         salida.append({
             "titulo":   prod.get("title", "Sin título"),
             "sku":      sku,
             "imagenes": imgs,
-            "variante": variante_text,
+            "variante": variante,
             "cantidad": oi.get("quantity", 0)
         })
 
-    # El return debe quedar fuera del for
     return {
         "cliente": order_data.get("buyer", {}).get("nickname", "Sin nombre"),
-        "items":   salida
+        "items": salida
     }
+
+
 def get_shipment_by_id(shipment_id: str) -> dict:
     token = get_valid_token()
     if not token:
@@ -117,118 +122,38 @@ def get_shipment_by_id(shipment_id: str) -> dict:
         return {}
     return resp.json()
 
+
 def get_order_details(code: str):
     token = get_valid_token()
     if not token:
         return {"cliente": "Error", "items": []}
     headers = {"Authorization": f"Bearer {token}"}
 
-    # 1) ¿Es un order_id directamente?
+    # 1) ¿Es un order_id?
     r1 = requests.get(f"https://api.mercadolibre.com/orders/{code}", headers=headers)
     if r1.status_code == 200:
-        order_data = r1.json()
-        cliente = order_data.get("buyer", {}).get("nickname", "Sin nombre")
-        salida = []
-
-        for oi in order_data.get("order_items", []):
-            prod = oi["item"]
-            item_id = prod["id"]
-            variation_id = prod.get("variation_id")
-            attrs = prod.get("variation_attributes", [])
-            variante = attrs[0]["value_name"] if attrs else "—"
-
-            # SKU desde publicación
-            sku = "Sin SKU"
-            item_data = requests.get(f"https://api.mercadolibre.com/items/{item_id}", headers=headers)
-            if item_data.status_code == 200:
-                sku = item_data.json().get("seller_custom_field") or "Sin SKU"
-
-            # Imágenes
-            imgs = fetch_variation_images(item_id, variation_id, headers) if variation_id else fetch_item_images(item_id, headers)
-            if not imgs:
-                imgs = [{"url": DEFAULT_IMG, "thumbnail": DEFAULT_IMG}]
-
-            salida.append({
-                "titulo": prod.get("title", "Sin título"),
-                "sku": sku,
-                "imagenes": imgs,
-                "variante": variante,
-                "cantidad": oi.get("quantity", 0)
-            })
-
-        return {"cliente": cliente, "items": salida}
+        return parse_order_data(r1.json(), headers)
 
     # 2) ¿Es un shipment_id?
     r2 = requests.get(f"https://api.mercadolibre.com/shipments/{code}", headers=headers)
     if r2.status_code == 200:
         shipment = r2.json()
         order_id = shipment.get("order_id")
-
-        # Cliente
-        cliente = "Sin nombre"
         if order_id:
             r_order = requests.get(f"https://api.mercadolibre.com/orders/{order_id}", headers=headers)
             if r_order.status_code == 200:
-                cliente = r_order.json().get("buyer", {}).get("nickname", "Sin nombre")
-
-        salida = []
-        for item in shipment.get("shipping_items", []):
-            item_id = item["id"]
-            cantidad = item["quantity"]
-            titulo = item["description"]
-
-            # SKU real
-            sku = "Sin SKU"
-            item_data = requests.get(f"https://api.mercadolibre.com/items/{item_id}", headers=headers)
-            if item_data.status_code == 200:
-                sku = item_data.json().get("seller_custom_field") or "Sin SKU"
-
-            # Imágenes
-            imgs = fetch_item_images(item_id, headers)
-            if not imgs:
-                imgs = [{"url": DEFAULT_IMG, "thumbnail": DEFAULT_IMG}]
-
-            salida.append({
-                "titulo": titulo,
-                "sku": sku,
-                "imagenes": imgs,
-                "variante": "—",
-                "cantidad": cantidad
-            })
-
-        return {"cliente": cliente, "items": salida}
+                return parse_order_data(r_order.json(), headers)
 
     # 3) ¿Es un pack_id?
     r3 = requests.get(f"https://api.mercadolibre.com/packs/{code}", headers=headers)
     if r3.status_code == 200:
         all_items = []
+        cliente = "Pack de productos"
         for o in r3.json().get("orders", []):
             ro = requests.get(f"https://api.mercadolibre.com/orders/{o['id']}", headers=headers)
             if ro.status_code == 200:
-                order_data = ro.json()
-                for oi in order_data.get("order_items", []):
-                    prod = oi["item"]
-                    item_id = prod["id"]
-                    variation_id = prod.get("variation_id")
-                    attrs = prod.get("variation_attributes", [])
-                    variante = attrs[0]["value_name"] if attrs else "—"
-
-                    sku = "Sin SKU"
-                    item_data = requests.get(f"https://api.mercadolibre.com/items/{item_id}", headers=headers)
-                    if item_data.status_code == 200:
-                        sku = item_data.json().get("seller_custom_field") or "Sin SKU"
-
-                    imgs = fetch_variation_images(item_id, variation_id, headers) if variation_id else fetch_item_images(item_id, headers)
-                    if not imgs:
-                        imgs = [{"url": DEFAULT_IMG, "thumbnail": DEFAULT_IMG}]
-
-                    all_items.append({
-                        "titulo": prod.get("title", "Sin título"),
-                        "sku": sku,
-                        "imagenes": imgs,
-                        "variante": variante,
-                        "cantidad": oi.get("quantity", 0)
-                    })
-        return {"cliente": "Pack de productos", "items": all_items}
+                parsed = parse_order_data(ro.json(), headers)
+                all_items.extend(parsed["items"])
+        return {"cliente": cliente, "items": all_items}
 
     return {"cliente": "Error", "items": []}
